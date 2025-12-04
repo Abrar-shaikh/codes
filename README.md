@@ -191,82 +191,85 @@ int main() {
 
 # code 6 — Mergesort
 
+
+//C Code to Measure Time Taken by Merge Sort
 #include <stdio.h>
-
-void merge(int a[], int l, int m, int r) {
-    int L[100], R[100], n1 = m-l+1, n2 = r-m;
-    int i, j, k;
-
-    for (i=0;i<n1;i++) L[i]=a[l+i];
-    for (j=0;j<n2;j++) R[j]=a[m+1+j];
-
-    i=j=0;k=l;
-
-    while (i<n1 && j<n2)
-        a[k++] = (L[i]<=R[j]) ? L[i++] : R[j++];
-
-    while(i<n1) a[k++] = L[i++];
-    while(j<n2) a[k++] = R[j++];
-}
-
-void mergesort(int a[], int l, int r) {
-    if (l < r) {
-        int m=(l+r)/2;
-        mergesort(a,l,m);
-        mergesort(a,m+1,r);
-        merge(a,l,m,r);
-    }
-}
-
-int main() {
-    int n,a[100];
-    scanf("%d",&n);
-    for (int i=0;i<n;i++) scanf("%d",&a[i]);
-    mergesort(a,0,n-1);
-    for (int i=0;i<n;i++) printf("%d ",a[i]);
-    return 0;
-}
-
-
-# code 7 — Mergesort Time Measurement
-
-#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
-void merge(int a[], int l, int m, int r) {
-    int L[100], R[100], n1 = m-l+1, n2 = r-m;
-    int i,j,k;
+// Merge function
+void merge(int arr[], int left, int mid, int right) {
+    int i, j, k;
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
 
-    for(i=0;i<n1;i++) L[i]=a[l+i];
-    for(j=0;j<n2;j++) R[j]=a[m+1+j];
+    // Temporary arrays
+    int *L = (int *)malloc(n1 * sizeof(int));
+    int *R = (int *)malloc(n2 * sizeof(int));
 
-    i=j=0;k=l;
-    while(i<n1 && j<n2)
-        a[k++]=(L[i]<=R[j])?L[i++]:R[j++];
-    while(i<n1) a[k++]=L[i++];
-    while(j<n2) a[k++]=R[j++];
+    // Copy data
+    for (i = 0; i < n1; i++) L[i] = arr[left + i];
+    for (j = 0; j < n2; j++) R[j] = arr[mid + 1 + j];
+
+    i = 0; j = 0; k = left;
+
+    // Merge
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) arr[k++] = L[i++];
+        else arr[k++] = R[j++];
+    }
+
+    // Copy remaining elements
+    while (i < n1) arr[k++] = L[i++];
+    while (j < n2) arr[k++] = R[j++];
+
+    free(L);
+    free(R);
 }
 
-void mergesort(int a[], int l, int r) {
-    if(l<r){
-        int m=(l+r)/2;
-        mergesort(a,l,m);
-        mergesort(a,m+1,r);
-        merge(a,l,m,r);
+// Merge Sort
+void mergeSort(int arr[], int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left)/2;
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid+1, right);
+        merge(arr, left, mid, right);
     }
 }
 
 int main() {
-    int n,a[100]; clock_t s,e;
-    scanf("%d",&n);
-    for(int i=0;i<n;i++) scanf("%d",&a[i]);
+    int n;
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
 
-    s=clock();
-    mergesort(a,0,n-1);
-    e=clock();
+    int *arr = (int *)malloc(n * sizeof(int));
+    if (!arr) {
+        printf("Memory allocation failed.\n");
+        return 1;
+    }
 
-    for(int i=0;i<n;i++) printf("%d ",a[i]);
-    printf("\nTime = %f sec\n",(double)(e-s)/CLOCKS_PER_SEC);
+   printf("enter %d number of elements: ",n);
+   for(int i=0;i<n;i++){
+        scanf("%d",&arr[i]);
+   }
+
+    // Start timer
+    clock_t start = clock();
+
+    mergeSort(arr, 0, n - 1);
+
+    // Stop timer
+    clock_t end = clock();
+
+    double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("sorted elements: ");
+    for(int i=0;i<n;i++){
+        printf("%d ",arr[i]);
+    }
+    printf("\n");
+    printf("Time taken to sort %d elements: %f seconds\n", n, time_taken);
+
+    free(arr);
     return 0;
 }
 
@@ -301,36 +304,53 @@ int main() {
 
 #include <stdio.h>
 #define INF 999999
-
 int main() {
-    int n,cost[20][20],visited[20]={0};
-    scanf("%d",&n);
+    int n;
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+    int cost[n][n];
+    printf("Enter the adjacency matrix (0 for no edge):\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            scanf("%d", &cost[i][j]);
+            if (cost[i][j] == 0 && i != j) {
+                cost[i][j] = INF;  // No edge becomes INF
+            }
+        }
+    }
 
-    for(int i=0;i<n;i++)
-        for(int j=0;j<n;j++){
-            scanf("%d",&cost[i][j]);
-            if(cost[i][j]==0 && i!=j) cost[i][j]=INF;
+    int selected[n];      // Mark visited vertices
+    for (int i = 0; i < n; i++)
+        selected[i] = 0;
+    selected[0] = 1;      // Start with vertex 0
+    int edges = 0;
+    int total_cost = 0;
+    printf("\nEdges selected in Minimum Spanning Tree:\n");
+    while (edges < n - 1) {
+        int min = INF;
+        int a = -1, b = -1;
+        // Find minimum cost edge connecting selected → unselected
+        for (int i = 0; i < n; i++) {
+            if (selected[i]) {  // already in MST
+                for (int j = 0; j < n; j++) {
+                    if (!selected[j] && cost[i][j] < min) {
+                        min = cost[i][j];
+                        a = i;
+                        b = j;
+                    }
+                }
+            }
         }
 
-    visited[0]=1;
-    int edges=0,min_cost=0;
-
-    while(edges<n-1){
-        int u=-1,v=-1,min=INF;
-        for(int i=0;i<n;i++)
-            if(visited[i])
-                for(int j=0;j<n;j++)
-                    if(!visited[j] && cost[i][j]<min){
-                        min=cost[i][j];
-                        u=i; v=j;
-                    }
-        visited[v]=1;
-        printf("%d - %d : %d\n",u,v,min);
-        min_cost+=min; edges++;
+        printf("%d  %d  | Weight = %d\n", a, b, cost[a][b]);
+        total_cost += cost[a][b];
+        selected[b] = 1;
+        edges++;
     }
-    printf("Cost = %d\n",min_cost);
+    printf("\nTotal Minimum Cost = %d\n", total_cost);
     return 0;
 }
+
 
 
 # code 10 — Dijkstra
@@ -466,37 +486,53 @@ int main() {
 
 # code 13 — TSP Backtracking
 
+//C code on Travelling sales man problem.
+
 #include <stdio.h>
-#define INF 999999
+#define INF 9999999
+#define N 4 // Number of cities
 
-int n,cost[20][20],visited[20],best=INF;
+int dist[N][N] = {
+    {0, 10, 15, 20},
+    {10, 0, 35, 25},
+    {15, 35, 0, 30},
+    {20, 25, 30, 0}
+};
 
-void tsp(int curr,int count,int c){
-    if(count==n && cost[curr][0]!=0){
-        int total=c+cost[curr][0];
-        if(total<best) best=total;
-        return;
+int dp[1 << N][N]; // dp[mask][i]
+
+int tsp(int mask, int pos) 
+{
+    if (mask == (1 << N) - 1) 
+{
+        return dist[pos][0]; // Return to the starting city
     }
 
-    for(int i=0;i<n;i++)
-        if(!visited[i] && cost[curr][i]!=0){
-            visited[i]=1;
-            tsp(i,count+1,c+cost[curr][i]);
-            visited[i]=0;
+    if (dp[mask][pos] != -1) 
+{
+        return dp[mask][pos];
+    }
+
+    int ans = INF;
+    for (int city = 0; city < N; city++) 
+{
+        if (!(mask & (1 << city))) 
+{
+            int newAns = dist[pos][city] + tsp(mask | (1 << city), city);
+            ans = (newAns < ans) ? newAns : ans;
         }
+    }
+    return dp[mask][pos] = ans;
 }
 
-int main(){
-    scanf("%d",&n);
-    for(int i=0;i<n;i++)
-        for(int j=0;j<n;j++)
-            scanf("%d",&cost[i][j]);
-
-    for(int i=0;i<n;i++) visited[i]=0;
-
-    visited[0]=1;
-    tsp(0,1,0);
-
-    printf("TSP Min Cost = %d\n",best);
+int main() {
+    for (int i = 0; i < (1 << N); i++) 
+{
+        for (int j = 0; j < N; j++) 
+{
+            dp[i][j] = -1;
+        }
+    }
+    printf("The minimum cost is %d\n", tsp(1, 0));
     return 0;
 }
