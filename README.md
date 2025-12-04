@@ -1,246 +1,502 @@
-# code 5
+# code 1 — Warshall’s Algorithm (Transitive Closure)
+
 #include <stdio.h>
+
 int main() {
-int data[10];
-int datatrec[10];
-int c,c1,c2,c3,i;
-printf("Enter 4 bits of data: ");
-scanf("%d",&data[0]);
-scanf("%d",&data[1]);
-scanf("%d",&data[2]);
-scanf("%d",&data[4]);
-data[6]= data[0] ^ data[2] ^ data[4];
-data[5]= data[0] ^ data[1] ^ data[4];
-data[3]= data[0] ^ data[1] ^ data[2];
-printf("\nencoded data is :");
-for(i=0;i<7;i++){
-printf("%d", data[i]);
-}
-printf("\nEnter recived 7 bits: ");
-for(i=0;i<7;i++){
-scanf("%d",&datatrec[i]);
-}
-c1 = datatrec[6] ^ datatrec[4] ^ datatrec[2] ^ datatrec[0];
-c2 = datatrec[5] ^ datatrec[4] ^ datatrec[1] ^ datatrec[0];
-c3 = datatrec[3] ^ datatrec[2] ^ datatrec[1] ^ datatrec[0];
-c = c3 * 4 + c2 * 2 + c1;
-if(c==0){
-printf("\nNo error recived in data");
-} else{
-printf("\nerror recived at bit position: %d ", c);
-printf("\nData sent :");
-for(i=0;i<7;i++) printf("%d", data[i]);
-printf("\nData recived :");
-for(i=0;i<7;i++) printf("%d", datatrec[i]);
-printf("\nData Corrected :");
-int idx = 7 - c;
-datatrec[idx] = datatrec[idx] ^ 1;
-for(i=0;i<7;i++) printf("%d", datatrec[i]);
-printf("\n");
-}
-return 0;
+    int n, i, j, k;
+    int adj[20][20], reach[20][20];
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix (0/1):\n");
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            scanf("%d", &adj[i][j]);
+            reach[i][j] = adj[i][j];
+        }
+    }
+
+    for (k = 0; k < n; k++) {
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                reach[i][j] = reach[i][j] || (reach[i][k] && reach[k][j]);
+            }
+        }
+    }
+
+    printf("Transitive closure:\n");
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) printf("%d ", reach[i][j]);
+        printf("\n");
+    }
+    return 0;
 }
 
-#code 6
+
+# code 2 — DFS Reachable Nodes
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-int n, r;
-struct frame {
- char ack;
- int data;
-} frm[10];
-int sender(void);
-void recvack(void);
-void resend_sr(void);
-void resend_gb(void);
-void selective(void);
-void goback(void);
-/* Data Comm. & Computer Network Lab [DCCN ] CSE Department ASET, AUM. */
-void goback() {
- sender();
- recvack();
- resend_gb();
- printf("\n all frames sent succesfully \n");
+
+int n;
+int adj[20][20];
+int visited[20];
+
+void dfs(int v) {
+    int i;
+    visited[v] = 1;
+    printf("%d ", v);
+
+    for (i = 0; i < n; i++)
+        if (adj[v][i] && !visited[i])
+            dfs(i);
 }
-void selective() {
- sender();
- recvack();
- resend_sr();
- printf("\n all frames sent succesfully \n");
-}
-int sender() {
- int i, data;
- printf("\nEnter the no.of frames to be sent:");
- scanf("%d", &n);
- for (i = 1; i <= n; i++) {
- printf("\nEnter the data for frames [%d]: ", i);
- scanf("%d", &data);
- frm[i].data = data;
- frm[i].ack = 'y';
- }
- return 0;
-}
-void recvack() {
- int i;
- rand();
- r = rand() % n;
- frm[r].ack = 'n';
- for (i = 1; i <= n; i++) {
- if (frm[i].ack == 'n')
- printf("\nThe frame number %d is not recieved\n", r);
- }
-}
-void resend_sr() {
- printf("\nresending frame %d", r);
- sleep(2);
- frm[r].ack = 'y';
- printf("\nThe received frame is %d", frm[r].data);
-}
-void resend_gb() { // Fixed: Changed from int to void
- int i;
- printf("\nGo-Back-N: Resending from frame %d onwards.\n", r);
- for (i = r; i <= n; i++) {
- printf("Resending frame %d with data %d\n", i, frm[i].data);
- frm[i].ack = 'y';
- }
-}
+
 int main() {
- int ch;
- printf("1. Go Back N\n2. Selective Repeat\nEnter choice: ");
- scanf("%d", &ch);
- switch (ch) {
- case 1:
- goback();
- break;
- case 2:
- selective();
- break;
- default:
- printf("Invalid choice\n");
- }
- return 0;
+    int i, j, start;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix:\n");
+    for (i = 0; i < n; i++)
+        for (j = 0; j < n; j++)
+            scanf("%d", &adj[i][j]);
+
+    for (i = 0; i < n; i++) visited[i] = 0;
+
+    printf("Enter start vertex: ");
+    scanf("%d", &start);
+
+    printf("DFS reachable: ");
+    dfs(start);
+    return 0;
 }
 
-#code 7
-NUL=1000
-INF=999
 
-def init(n):
-    t=[[[i,None,(0 if i==j else INF)][:] for j in range(n)] for i in range(n)]
-    # structure: t[src][dst] = [dst_index, next_hop_index or None, dist]
-    for i in range(n):
-        for j in range(n):
-            t[i][j][0]=j
-    return t
+# code 3 — BFS Reachable Nodes
 
-def inp(t):
-    n=len(t)
-    for i in range(n):
-        print(f"\nEnter link cost from node {i+1} to others:")
-        for j in range(n):
-            if i==j: continue
-            c=int(input(f"Cost to node {j+1} (999 if no link): "))
-            if c!=INF:
-                t[i][j][2]=c
-                t[i][j][1]=j
+#include <stdio.h>
 
-def update(t):
-    n=len(t)
-    for _ in range(n):
-        for x in range(n):
-            for y in range(n):
-                for via in range(n):
-                    if t[x][via][2]>=INF: continue
-                    d=t[x][via][2]+t[via][y][2]
-                    if d < t[x][y][2]:
-                        t[x][y][2]=d; t[x][y][1]=via
+int main() {
+    int n, adj[20][20];
+    int visited[20] = {0};
+    int queue[20], front = 0, rear = 0;
+    int i, j, start;
 
-def print_tables(t,desc):
-    print(f"\nRouting Tables {desc}:")
-    n=len(t)
-    for x in range(n):
-        print(f"\nRouting table for node {x+1}:\nDEST\tDIST\tNEXT_HOP")
-        for i in range(n):
-            dist=t[x][i][2]; hop=t[x][i][1]
-            if dist>=INF: print(f"{i+1}\tNO LINK\tNO HOP")
-            elif hop is None: print(f"{i+1}\t{dist}\tNO HOP")
-            else: print(f"{i+1}\t{dist}\t{hop+1}")
+    printf("Enter vertices: ");
+    scanf("%d", &n);
 
-def find_route(t,src,dst):
-    path=[]
-    i=src-1; j=dst-1
-    if t[i][j][2]>=INF:
-        print("No route")
-        return
-    while True:
-        path.append(i+1)
-        if t[i][j][1]==j: break
-        i=t[i][j][1]
-    print(" -> ".join(map(str,path+[dst])))
-    print("Shortest distance =", t[src-1][dst-1][2])
+    printf("Enter adjacency matrix:\n");
+    for (i = 0; i < n; i++)
+        for (j = 0; j < n; j++)
+            scanf("%d", &adj[i][j]);
 
-def main():
-    while True:
-        no=int(input("Enter the number of nodes (1–10): "))
-        if 1<=no<=10: break
-    t=init(no); inp(t)
-    print_tables(t,"(Initial)")
-    update(t)
-    print_tables(t,"After Path Computation")
-    while True:
-        if not int(input("\nEnter 0 to exit, any other number to find shortest path: ")): break
-        x,y=map(int,input("Enter the nodes (src dest): ").split())
-        print(f"\nBest route from node {x} to {y} is:")
-        find_route(t,x,y)
+    printf("Enter start vertex: ");
+    scanf("%d", &start);
 
-if __name__=="__main__":
-    main()
+    visited[start] = 1;
+    queue[rear++] = start;
 
-#code 8
-########client.py
-import socket
+    printf("BFS reachable: ");
 
-# Create UDP socket
-client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = ('localhost', 12345)
+    while (front < rear) {
+        int v = queue[front++];
+        printf("%d ", v);
 
-while True:
-    query = input("\nEnter Hostname or IP (or 'exit' to quit'): ")
-
-    if query.lower() == 'exit':
-        break
-
-    # Send query to server
-    client.sendto(query.encode(), server_address)
-
-    # Receive response
-    data, _ = client.recvfrom(1024)
-    print("Resolved Address:", data.decode())
-
-client.close()
-
-########server.py
-import socket
-
-# DNS mapping (static)
-dns_table = {
-    "www.google.com": "142.250.190.68",
-    "142.250.190.68": "www.google.com"
+        for (i = 0; i < n; i++) {
+            if (adj[v][i] && !visited[i]) {
+                visited[i] = 1;
+                queue[rear++] = i;
+            }
+        }
+    }
+    return 0;
 }
 
-# Create UDP socket
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server.bind(('localhost', 12345))
 
-print("DNS Server started... waiting for queries")
+# code 4 — Quicksort
 
-while True:
-    data, addr = server.recvfrom(1024)
-    query = data.decode()
-    print(f"Received query: {query}")
+#include <stdio.h>
 
-    # Resolve query
-    response = dns_table.get(query, "No record found")
-    server.sendto(response.encode(), addr)
-    print(f"Sent response: {response}")
+void swap(int *a, int *b) { int t = *a; *a = *b; *b = t; }
+
+int partition(int a[], int low, int high) {
+    int pivot = a[high], i = low - 1, j;
+    for (j = low; j < high; j++)
+        if (a[j] <= pivot) { i++; swap(&a[i], &a[j]); }
+    swap(&a[i+1], &a[high]);
+    return i+1;
+}
+
+void quicksort(int a[], int low, int high) {
+    if (low < high) {
+        int pi = partition(a, low, high);
+        quicksort(a, low, pi - 1);
+        quicksort(a, pi + 1, high);
+    }
+}
+
+int main() {
+    int n, i, a[100];
+    printf("Enter n: "); scanf("%d", &n);
+    for (i = 0; i < n; i++) scanf("%d", &a[i]);
+    quicksort(a, 0, n-1);
+    for (i = 0; i < n; i++) printf("%d ", a[i]);
+    return 0;
+}
+
+
+# code 5 — Quicksort Time Measurement
+
+#include <stdio.h>
+#include <time.h>
+
+void swap(int *a, int *b) { int t = *a; *a = *b; *b = t; }
+
+int partition(int a[], int low, int high) {
+    int pivot = a[high], i = low - 1, j;
+    for (j = low; j < high; j++)
+        if (a[j] <= pivot) { i++; swap(&a[i], &a[j]); }
+    swap(&a[i+1], &a[high]);
+    return i+1;
+}
+
+void quicksort(int a[], int low, int high) {
+    if (low < high) {
+        int pi = partition(a, low, high);
+        quicksort(a, low, pi - 1);
+        quicksort(a, pi + 1, high);
+    }
+}
+
+int main() {
+    int n, i, a[100];
+    clock_t start, end;
+
+    printf("Enter n: "); scanf("%d", &n);
+    for (i = 0; i < n; i++) scanf("%d", &a[i]);
+
+    start = clock();
+    quicksort(a, 0, n-1);
+    end = clock();
+
+    printf("Sorted: ");
+    for (i = 0; i < n; i++) printf("%d ", a[i]);
+
+    printf("\nTime: %f sec\n", (double)(end - start)/CLOCKS_PER_SEC);
+    return 0;
+}
+
+
+# code 6 — Mergesort
+
+#include <stdio.h>
+
+void merge(int a[], int l, int m, int r) {
+    int L[100], R[100], n1 = m-l+1, n2 = r-m;
+    int i, j, k;
+
+    for (i=0;i<n1;i++) L[i]=a[l+i];
+    for (j=0;j<n2;j++) R[j]=a[m+1+j];
+
+    i=j=0;k=l;
+
+    while (i<n1 && j<n2)
+        a[k++] = (L[i]<=R[j]) ? L[i++] : R[j++];
+
+    while(i<n1) a[k++] = L[i++];
+    while(j<n2) a[k++] = R[j++];
+}
+
+void mergesort(int a[], int l, int r) {
+    if (l < r) {
+        int m=(l+r)/2;
+        mergesort(a,l,m);
+        mergesort(a,m+1,r);
+        merge(a,l,m,r);
+    }
+}
+
+int main() {
+    int n,a[100];
+    scanf("%d",&n);
+    for (int i=0;i<n;i++) scanf("%d",&a[i]);
+    mergesort(a,0,n-1);
+    for (int i=0;i<n;i++) printf("%d ",a[i]);
+    return 0;
+}
+
+
+# code 7 — Mergesort Time Measurement
+
+#include <stdio.h>
+#include <time.h>
+
+void merge(int a[], int l, int m, int r) {
+    int L[100], R[100], n1 = m-l+1, n2 = r-m;
+    int i,j,k;
+
+    for(i=0;i<n1;i++) L[i]=a[l+i];
+    for(j=0;j<n2;j++) R[j]=a[m+1+j];
+
+    i=j=0;k=l;
+    while(i<n1 && j<n2)
+        a[k++]=(L[i]<=R[j])?L[i++]:R[j++];
+    while(i<n1) a[k++]=L[i++];
+    while(j<n2) a[k++]=R[j++];
+}
+
+void mergesort(int a[], int l, int r) {
+    if(l<r){
+        int m=(l+r)/2;
+        mergesort(a,l,m);
+        mergesort(a,m+1,r);
+        merge(a,l,m,r);
+    }
+}
+
+int main() {
+    int n,a[100]; clock_t s,e;
+    scanf("%d",&n);
+    for(int i=0;i<n;i++) scanf("%d",&a[i]);
+
+    s=clock();
+    mergesort(a,0,n-1);
+    e=clock();
+
+    for(int i=0;i<n;i++) printf("%d ",a[i]);
+    printf("\nTime = %f sec\n",(double)(e-s)/CLOCKS_PER_SEC);
+    return 0;
+}
+
+
+# code 8 — Topological Sort (Kahn)
+
+#include <stdio.h>
+
+int main() {
+    int n,adj[20][20],indeg[20]={0},visited[20]={0};
+    scanf("%d",&n);
+
+    for(int i=0;i<n;i++)
+        for(int j=0;j<n;j++){
+            scanf("%d",&adj[i][j]);
+            if(adj[i][j]) indeg[j]++;
+        }
+
+    for(int c=0;c<n;c++)
+        for(int i=0;i<n;i++)
+            if(!visited[i] && indeg[i]==0){
+                printf("%d ",i);
+                visited[i]=1;
+                for(int j=0;j<n;j++)
+                    if(adj[i][j]) indeg[j]--;
+            }
+    return 0;
+}
+
+
+# code 9 — Prim’s MST
+
+#include <stdio.h>
+#define INF 999999
+
+int main() {
+    int n,cost[20][20],visited[20]={0};
+    scanf("%d",&n);
+
+    for(int i=0;i<n;i++)
+        for(int j=0;j<n;j++){
+            scanf("%d",&cost[i][j]);
+            if(cost[i][j]==0 && i!=j) cost[i][j]=INF;
+        }
+
+    visited[0]=1;
+    int edges=0,min_cost=0;
+
+    while(edges<n-1){
+        int u=-1,v=-1,min=INF;
+        for(int i=0;i<n;i++)
+            if(visited[i])
+                for(int j=0;j<n;j++)
+                    if(!visited[j] && cost[i][j]<min){
+                        min=cost[i][j];
+                        u=i; v=j;
+                    }
+        visited[v]=1;
+        printf("%d - %d : %d\n",u,v,min);
+        min_cost+=min; edges++;
+    }
+    printf("Cost = %d\n",min_cost);
+    return 0;
+}
+
+
+# code 10 — Dijkstra
+
+#include <stdio.h>
+#define INF 999999
+
+int main() {
+    int n,cost[20][20],dist[20],visited[20]={0},src;
+    scanf("%d",&n);
+
+    for(int i=0;i<n;i++)
+        for(int j=0;j<n;j++){
+            scanf("%d",&cost[i][j]);
+            if(cost[i][j]==0 && i!=j) cost[i][j]=INF;
+        }
+
+    scanf("%d",&src);
+
+    for(int i=0;i<n;i++) dist[i]=cost[src][i];
+    dist[src]=0; visited[src]=1;
+
+    for(int c=1;c<n;c++){
+        int u=-1,min=INF;
+        for(int i=0;i<n;i++)
+            if(!visited[i] && dist[i]<min){
+                min=dist[i]; u=i;
+            }
+        if(u==-1) break;
+
+        visited[u]=1;
+
+        for(int v=0;v<n;v++)
+            if(!visited[v] && dist[u]+cost[u][v] < dist[v])
+                dist[v]=dist[u]+cost[u][v];
+    }
+
+    for(int i=0;i<n;i++)
+        printf("To %d: %d\n",i,dist[i]);
+    return 0;
+}
+
+
+# code 11 — Kruskal
+
+#include <stdio.h>
+#define INF 999999
+
+struct Edge { int u,v,w; };
+
+int find(int parent[], int i){
+    if(parent[i]==i) return i;
+    return parent[i]=find(parent,parent[i]);
+}
+
+void union_set(int parent[], int rank[], int x, int y){
+    int rx=find(parent,x), ry=find(parent,y);
+    if(rx==ry) return;
+    if(rank[rx]<rank[ry]) parent[rx]=ry;
+    else if(rank[rx]>rank[ry]) parent[ry]=rx;
+    else { parent[ry]=rx; rank[rx]++; }
+}
+
+int main() {
+    int n,cost[20][20];
+    scanf("%d",&n);
+
+    for(int i=0;i<n;i++)
+        for(int j=0;j<n;j++){
+            scanf("%d",&cost[i][j]);
+            if(cost[i][j]==0) cost[i][j]=INF;
+        }
+
+    struct Edge edges[200];
+    int e=0;
+    for(int i=0;i<n;i++)
+        for(int j=i+1;j<n;j++)
+            if(cost[i][j]!=INF){
+                edges[e].u=i; edges[e].v=j; edges[e].w=cost[i][j];
+                e++;
+            }
+
+    for(int i=0;i<e-1;i++)
+        for(int j=0;j<e-i-1;j++)
+            if(edges[j].w > edges[j+1].w){
+                struct Edge t=edges[j]; edges[j]=edges[j+1]; edges[j+1]=t;
+            }
+
+    int parent[20], rank[20];
+    for(int i=0;i<n;i++){ parent[i]=i; rank[i]=0; }
+
+    int mst_cost=0, count=0;
+
+    for(int i=0;i<e && count<n-1;i++){
+        int u=edges[i].u, v=edges[i].v, w=edges[i].w;
+        int ru=find(parent,u), rv=find(parent,v);
+        if(ru!=rv){
+            printf("%d - %d : %d\n",u,v,w);
+            mst_cost+=w; count++;
+            union_set(parent,rank,ru,rv);
+        }
+    }
+    printf("Cost = %d\n",mst_cost);
+    return 0;
+}
+
+
+# code 12 — 0-1 Knapsack DP
+
+#include <stdio.h>
+
+int max(int a,int b){ return a>b?a:b; }
+
+int main() {
+    int n,W,wt[50],val[50],dp[51][51];
+    scanf("%d",&n);
+
+    for(int i=0;i<n;i++) scanf("%d",&wt[i]);
+    for(int i=0;i<n;i++) scanf("%d",&val[i]);
+    scanf("%d",&W);
+
+    for(int i=0;i<=n;i++)
+        for(int w=0;w<=W;w++)
+            if(i==0 || w==0) dp[i][w]=0;
+            else if(wt[i-1]<=w)
+                dp[i][w]=max(val[i-1]+dp[i-1][w-wt[i-1]],dp[i-1][w]);
+            else dp[i][w]=dp[i-1][w];
+
+    printf("Max value = %d\n",dp[n][W]);
+    return 0;
+}
+
+
+# code 13 — TSP Backtracking
+
+#include <stdio.h>
+#define INF 999999
+
+int n,cost[20][20],visited[20],best=INF;
+
+void tsp(int curr,int count,int c){
+    if(count==n && cost[curr][0]!=0){
+        int total=c+cost[curr][0];
+        if(total<best) best=total;
+        return;
+    }
+
+    for(int i=0;i<n;i++)
+        if(!visited[i] && cost[curr][i]!=0){
+            visited[i]=1;
+            tsp(i,count+1,c+cost[curr][i]);
+            visited[i]=0;
+        }
+}
+
+int main(){
+    scanf("%d",&n);
+    for(int i=0;i<n;i++)
+        for(int j=0;j<n;j++)
+            scanf("%d",&cost[i][j]);
+
+    for(int i=0;i<n;i++) visited[i]=0;
+
+    visited[0]=1;
+    tsp(0,1,0);
+
+    printf("TSP Min Cost = %d\n",best);
+    return 0;
+}
